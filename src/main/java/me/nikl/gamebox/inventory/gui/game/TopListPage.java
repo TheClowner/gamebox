@@ -65,7 +65,7 @@ public class TopListPage extends GameGuiPage implements TopListUser {
         skullMeta.setLore(skullLore);
       } else {
         String name = player.getName();
-        skull = ItemStackUtility.getPlayerHead(name);
+        skull = ItemStackUtility.getPlayerHead(player.getUniqueId());
         skullMeta = (SkullMeta) skull.getItemMeta();
         List<String> skullLore = getSkullLoreForScore(stat);
         // chat color is already handled when loading the lore from the configuration file

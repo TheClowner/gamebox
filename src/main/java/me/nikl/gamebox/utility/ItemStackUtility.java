@@ -14,6 +14,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * @author Niklas Eicker
@@ -34,7 +35,7 @@ public class ItemStackUtility {
   public static final String LORE = "lore";
   public static final String NAME = "displayName";
   public static final String GLOW = "glow";
-  private static final Map<String, ItemStack> cachedPlayerHeads = new HashMap<>();
+  private static final Map<UUID, ItemStack> cachedPlayerHeads = new HashMap<>();
   private static final Inventory dummy = Bukkit.createInventory(null, 54, "dummy inv.");
 
   public static ItemStack getItemStack(String matDataString) {
@@ -105,19 +106,20 @@ public class ItemStackUtility {
     return toReturn;
   }
 
-  public static ItemStack getPlayerHead(String name) {
-    GameBox.debug("Grabbing head for " + name);
-    ItemStack skull = cachedPlayerHeads.get(name);
+  public static ItemStack getPlayerHead(UUID uuid) {
+    GameBox.debug("Grabbing head for " + uuid.toString());
+    ItemStack skull = cachedPlayerHeads.get(uuid);
     if (skull != null) return skull.clone();
     GameBox.debug("Not cached yet...");
     skull = new ItemStack(PLAYER_HEAD, 1);
     SkullMeta skullMeta = (SkullMeta) skull.getItemMeta();
-    skullMeta.setOwner(name);
+    assert skullMeta != null;
+    skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(uuid));
     skull.setItemMeta(skullMeta);
     // force profile lookup
     dummy.setItem(0, skull);
-    cachedPlayerHeads.put(name, skull);
-    GameBox.debug(name + "'s head is cached now");
+    cachedPlayerHeads.put(uuid, skull);
+    GameBox.debug(uuid.toString() + "'s head is cached now");
     return skull.clone();
   }
 }
