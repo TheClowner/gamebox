@@ -53,7 +53,7 @@ public class TopListPage extends GameGuiPage implements TopListUser {
       rank++;
       player = Bukkit.getOfflinePlayer(stat.getUuid());
       // checking for name == null is important to prevent NPEs after player data reset on server. This also happens with bungeecord networks
-      if (player == null || player.getName() == null) {
+      if (player == null || player.getName() == null || !player.hasPlayedBefore()) {
         skull = new ItemStack(ItemStackUtility.PLAYER_HEAD, 1);
         skullMeta = (SkullMeta) skull.getItemMeta();
         List<String> skullLore = getSkullLoreForScore(stat);
@@ -61,7 +61,8 @@ public class TopListPage extends GameGuiPage implements TopListUser {
           skullLore.set(i, skullLore.get(i).replace("%player%", ChatColor.stripColor(gameBox.lang.UNKNOWN_SKULL_NAME)).replace("%rank%", String.valueOf(rank)));
         }
         skullLore.addAll(gameBox.lang.UNKNOWN_SKULL_LORE);
-        skullMeta.setDisplayName(gameBox.lang.UNKNOWN_SKULL_NAME);
+        if (player.getName() != null) skullMeta.setDisplayName(gameBox.lang.PLAYER_SKULL_NAME.replace("%player%", player.getName()));
+        else skullMeta.setDisplayName(gameBox.lang.UNKNOWN_SKULL_NAME);
         skullMeta.setLore(skullLore);
       } else {
         String name = player.getName();

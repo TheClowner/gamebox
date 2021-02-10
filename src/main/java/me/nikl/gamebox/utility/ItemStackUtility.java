@@ -1,10 +1,12 @@
 package me.nikl.gamebox.utility;
 
 import me.nikl.gamebox.GameBox;
+import me.nikl.gamebox.PluginManager;
 import me.nikl.nmsutilities.NmsFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -108,18 +110,52 @@ public class ItemStackUtility {
 
   public static ItemStack getPlayerHead(UUID uuid) {
     GameBox.debug("Grabbing head for " + uuid.toString());
-    ItemStack skull = cachedPlayerHeads.get(uuid);
-    if (skull != null) return skull.clone();
+    ItemStack skull;
+    if (cachedPlayerHeads.containsKey(uuid)) {
+      skull = cachedPlayerHeads.get(uuid);
+      return skull.clone();
+    } else {
+      skull = new ItemStack(PLAYER_HEAD,1);
+    }
     GameBox.debug("Not cached yet...");
-    skull = new ItemStack(PLAYER_HEAD, 1);
-    SkullMeta skullMeta = (SkullMeta) skull.getItemMeta();
-    assert skullMeta != null;
-    skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(uuid));
-    skull.setItemMeta(skullMeta);
-    // force profile lookup
-    dummy.setItem(0, skull);
+    //Add default head to cache, we will grab the texture later
     cachedPlayerHeads.put(uuid, skull);
-    GameBox.debug(uuid.toString() + "'s head is cached now");
+
+    //Update the texture async
+    Bukkit.getScheduler().runTaskAsynchronously(Bukkit.getPluginManager().getPlugin("GameBox"),() -> {
+      SkullMeta skullMeta = (SkullMeta) skull.getItemMeta();
+      skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(uuid));
+      skull.setItemMeta(skullMeta);
+      GameBox.debug(uuid.toString() + "'s head is cached now");
+    });
+
+    // force profile lookup
+    //dummy.setItem(0, skull);
     return skull.clone();
+  }
+
+  @Deprecated
+  public static ItemStack getPlayerHead(String name) {
+    GameBox.debug("Grabbing head for " + name);
+    Player p = Bukkit.getPlayer(name);
+    if (p!=null && cachedPlayerHeads.containsKey(p.getUniqueId())) {
+      return cachedPlayerHeads.get(p.getUniqueId()).clone();
+    }
+
+    GameBox.debug("Not cached yet (or offline)...");
+
+    ItemStack skull = new ItemStack(PLAYER_HEAD, 1);
+
+    Bukkit.getScheduler().runTaskAsynchronously(Bukkit.getPluginManager().getPlugin("GameBox"),() -> {
+      SkullMeta skullMeta = (SkullMeta) skull.getItemMeta();
+      skullMeta.setOwner(name);
+      skull.setItemMeta(skullMeta);
+    });
+
+    // force profile lookup
+    //dummy.setItem(0, skull);
+    //cachedPlayerHeads.put(name, skull);
+    GameBox.debug(name + "'s head is cached now");
+    return skull;
   }
 }
